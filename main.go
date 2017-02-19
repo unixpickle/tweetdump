@@ -4,6 +4,8 @@ import (
 	"encoding/csv"
 	"flag"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -42,7 +44,12 @@ func main() {
 	writer := csv.NewWriter(os.Stdout)
 	for msg := range stream.Messages {
 		if tweet, ok := msg.(*twitter.Tweet); ok {
-			writer.Write([]string{tweet.IDStr, tweet.User.ScreenName, tweet.Text})
+			parsed, err := time.Parse(time.RubyDate, tweet.CreatedAt)
+			if err != nil {
+				essentials.Die(err)
+			}
+			t := strconv.FormatInt(parsed.Unix(), 10)
+			writer.Write([]string{tweet.IDStr, tweet.User.ScreenName, t, tweet.Text})
 			writer.Flush()
 		}
 	}
